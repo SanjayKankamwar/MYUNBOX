@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    environment {
+        COMPOSE_DIR = "${env.WORKSPACE}/log-pipeline"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    extensions: [[$class: 'CleanBeforeCheckout']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/SanjayKankamwar/MYUNBOX.git',
+                        credentialsId: 'git-cred'
+                    ]]
+                ])
+            }
+        }
+
+        stage('Deploy Stack') {
+            steps {
+                dir(env.COMPOSE_DIR) {
+                    sh 'docker-compose down || true'
+                    sh 'docker-compose up -d --build'
+                }
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                sh '''
+                until curl -s http://localhost:9200 >/dev/null; do
+                    sleep 5
+                    echo "Waiting for Elasticsearch..."
+                done
+                until curl -s http://localhost:3000 >/dev/null; do
+                    sleep 5
+                    echo "Waiting for Grafana..."
+                done
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

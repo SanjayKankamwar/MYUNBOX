@@ -1,0 +1,2 @@
+{"severity_text":"INFO", "instrumentation_scope":"robot_events", "observed_timestamp_rfc3339":"2025-03-29T12:00:00Z"}
+{"severity_text":"CRITICAL", "instrumentation_scope":"robot_utils", "observed_timestamp_rfc3339":"2025-03-29T12:01:00Z"}
